@@ -11,22 +11,39 @@ import pandas as pd
 import mlflow.sklearn  # Changed from pyfunc to sklearn!
 import pandas as pd
 import pickle
+import os
+# 1. Check if we are running in a CI/CD test environment
+IS_TESTING = os.getenv("TESTING") == "True"
 
-# 1. Point the API to your local MLflow tracking server
-mlflow.set_tracking_uri("http://host.docker.internal:5000")
+if not IS_TESTING:
+    # We are in production/local! Load the real models.
+    mlflow.set_tracking_uri("http://host.docker.internal:5000")
+    RUN_ID = "a85bbb411e0048abb1e842ec4e309fe7"
+    print(f"Loading MLflow model from Run ID: {RUN_ID}...")
+    model = mlflow.sklearn.load_model(f"runs:/{RUN_ID}/fraud_model")
+    
+    with open("models/scaler.pkl", "rb") as f:
+        scaler = pickle.load(f)
+else:
+    # We are in GitHub Actions! Mock the models so the app doesn't crash.
+    print("Running in Test Mode. Skipping MLflow connection.")
+    model = None
+    scaler = None
+# # 1. Point the API to your local MLflow tracking server
+# mlflow.set_tracking_uri("http://host.docker.internal:5000")
 
-# 2. Your Run ID
-RUN_ID = "a85bbb411e0048abb1e842ec4e309fe7"
+# # 2. Your Run ID
+# RUN_ID = "a85bbb411e0048abb1e842ec4e309fe7"
 
-print(f"Loading MLflow model from Run ID: {RUN_ID}...")
+# print(f"Loading MLflow model from Run ID: {RUN_ID}...")
 
-# 3. Load the model dynamically using the SKLEARN flavor.
-# This gives us access to .predict_proba() and .feature_names_in_
-model = mlflow.sklearn.load_model(f"runs:/{RUN_ID}/fraud_model")
+# # 3. Load the model dynamically using the SKLEARN flavor.
+# # This gives us access to .predict_proba() and .feature_names_in_
+# model = mlflow.sklearn.load_model(f"runs:/{RUN_ID}/fraud_model")
 
-# 4. Load your scaler to transform the incoming API data
-with open("models/scaler.pkl", "rb") as f:
-    scaler = pickle.load(f)
+# # 4. Load your scaler to transform the incoming API data
+# with open("models/scaler.pkl", "rb") as f:
+#     scaler = pickle.load(f)
 
 
 def decide(prediction, probability):
