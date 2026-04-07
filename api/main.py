@@ -6,6 +6,11 @@ from api.schemas import Transaction
 
 app = FastAPI()
 
+# ADD THIS: A simple health check route
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "message": "API is running!"}
+
 @app.get("/")
 def home():
     return {"message": "Fraud Detection API Running"}
