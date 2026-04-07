@@ -13,7 +13,7 @@ import pandas as pd
 import pickle
 
 # 1. Point the API to your local MLflow tracking server
-mlflow.set_tracking_uri("http://127.0.0.1:5000")
+mlflow.set_tracking_uri("http://host.docker.internal:5000")
 
 # 2. Your Run ID
 RUN_ID = "a85bbb411e0048abb1e842ec4e309fe7"
